@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.miproject.finalwork.dao.mapper.BatteryStatusMapper">
+
+    <!-- 查询电池详细信息 -->
+    <!-- 多表联查：先查询电池状态，之后查询规则表获取警告等级等信息 -->
+    <update id="delOldStatus">
+        UPDATE battery_status
+        SET del_flag = 1
+        WHERE vid = #{vid} AND type = #{type}
+    </update>
+
+</mapper>
