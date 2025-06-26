@@ -6,9 +6,10 @@ import com.miproject.finalwork.common.convention.exception.ClientException;
 import com.miproject.finalwork.common.convention.exception.RemoteException;
 import com.miproject.finalwork.common.convention.exception.ServiceException;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
-
+@Slf4j
 public class HandlerWrapper {
     @Getter
     private final Object handler;
@@ -23,6 +24,7 @@ public class HandlerWrapper {
         try {
             method.invoke(handler, funcall, input, context);
         } catch (Exception e) {
+            log.error(e.getMessage());
             Throwable cause = e.getCause();
             if(cause instanceof ServiceException){
                 throw (ServiceException) cause;
@@ -31,6 +33,7 @@ public class HandlerWrapper {
             }else if(cause instanceof RemoteException) {
                 throw (RemoteException) cause;
             } else {
+
                 throw new ServiceException(BaseErrorCode.SERVICE_HANDLER_ERROR);
             }
         }

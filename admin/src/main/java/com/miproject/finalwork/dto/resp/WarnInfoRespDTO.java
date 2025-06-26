@@ -7,7 +7,7 @@ import java.util.Date;
 @Data
 public class WarnInfoRespDTO {
     private String vid;
-    private Integer cid;
+    private Integer carId;
     private String batteryType;
     private Integer warnId;
     private String warnName;

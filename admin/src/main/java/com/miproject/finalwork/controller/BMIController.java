@@ -10,10 +10,7 @@ import com.miproject.finalwork.dto.resp.DetailReportRespDTO;
 import com.miproject.finalwork.dto.resp.WarnRespDTO;
 import com.miproject.finalwork.handler.HandlerChainFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -53,9 +50,9 @@ public class BMIController {
     Result<DetailReportRespDTO> getDetailReportData(@RequestBody ReportReqDTO reqDTO){
         return Results.success((DetailReportRespDTO) handlerChainFactory.execute(new String[]{"detail_report"}, "detail_report", reqDTO));
     }
-    @GetMapping("/api/getWarnInfo")
-    Result<List<WarnInfoRespDTO>> getWarnInfo(@RequestBody String vid){
-        return Results.success((List<WarnInfoRespDTO>) handlerChainFactory.execute(new String[]{"validate", "warn_info"}, "", vid));
+    @GetMapping("/api/getWarnInfo/{vid}")
+    Result<List<WarnInfoRespDTO>> getWarnInfo(@PathVariable("vid") String vid){
+        return Results.success((List<WarnInfoRespDTO>) handlerChainFactory.execute(new String[]{"warn_info"}, "warn_info", vid));
     }
 
 }

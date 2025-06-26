@@ -36,7 +36,7 @@ public class Listener implements RocketMQListener<MessageExt> {
 
     // 优先级队列，数字越小优先级越高
     private final PriorityBlockingQueue<WarnMsgMQReqDTO> queue =
-            new PriorityBlockingQueue<>(100, Comparator.comparingInt(WarnMsgMQReqDTO::getWarnLevel));
+            new PriorityBlockingQueue<>(10, Comparator.comparingInt(WarnMsgMQReqDTO::getWarnLevel));
 
 
     public Listener() {
@@ -54,6 +54,7 @@ public class Listener implements RocketMQListener<MessageExt> {
                     RBucket<String> bucket = redissonClient.getBucket(redisKey);
                     bucket.set(JSON.toJSONString(recv), 1, java.util.concurrent.TimeUnit.HOURS);
                 } catch (Exception ignored) {}
+                log.info("消费者定时任务存放消息");
             }
         }, "warn-priority-consumer").start();
     }
