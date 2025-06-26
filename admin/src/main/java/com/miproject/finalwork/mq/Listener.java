@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSON;
 import com.miproject.finalwork.dao.entity.WarnInfoDO;
 import com.miproject.finalwork.dao.mapper.WarnInfoMapper;
 import com.miproject.finalwork.dto.req.WarnMsgMQReqDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
@@ -19,6 +20,7 @@ import javax.annotation.PostConstruct;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.Comparator;
 
+@Slf4j
 // 监听器，按优先级处理
 @RocketMQMessageListener(
         topic = "warn-level-0-topic||warn-level-1-topic||warn-level-2-topic||warn-level-3-topic||warn-level-4-topic",
@@ -58,7 +60,7 @@ public class Listener implements RocketMQListener<MessageExt> {
 
     @Override
     public void onMessage(MessageExt messageExt){
-        System.out.println("Listener is working");
+        log.info("消费者消费了一条消息");
         String topic = messageExt.getTopic();
         WarnMsgMQReqDTO recv = JSON.parseObject(messageExt.getBody(), WarnMsgMQReqDTO.class);
         // 解析优先级
