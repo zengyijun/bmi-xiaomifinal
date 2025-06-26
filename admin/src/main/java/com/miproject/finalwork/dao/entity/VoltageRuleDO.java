@@ -10,11 +10,11 @@ import lombok.Data;
 @TableName("voltage_rule")
 public class VoltageRuleDO implements RulesDO {
     private Long id;
-    private int warnId;
+    private Integer warnId;
     private String warnName;
     private String batteryType;
     private String rule;
-    private int warnLevel;
-    private int delFlag;
+    private Integer warnLevel;
+    private Integer delFlag;
 
 }

@@ -11,11 +11,11 @@ import lombok.Data;
 @TableName("current_rule")
 public class CurrentRuleDO implements RulesDO {
     private Long id;
-    private int warnId;
+    private Integer warnId;
     private String warnName;
     private String batteryType;
     private String rule;
-    private int warnLevel;
-    private int delFlag;
+    private Integer warnLevel;
+    private Integer delFlag;
 
 }

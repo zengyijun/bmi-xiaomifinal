@@ -1,5 +1,7 @@
 package com.miproject.finalwork.handler;
 
+import com.miproject.finalwork.common.convention.errorcode.BaseErrorCode;
+import com.miproject.finalwork.common.convention.errorcode.IErrorCode;
 import com.miproject.finalwork.common.convention.exception.ClientException;
 import com.miproject.finalwork.common.convention.exception.RemoteException;
 import com.miproject.finalwork.common.convention.exception.ServiceException;
@@ -29,7 +31,7 @@ public class HandlerWrapper {
             }else if(cause instanceof RemoteException) {
                 throw (RemoteException) cause;
             } else {
-                throw new ServiceException("Handler 执行异常：" + handler.getClass() + "，异常：" + cause.toString());
+                throw new ServiceException(BaseErrorCode.SERVICE_HANDLER_ERROR);
             }
         }
     }

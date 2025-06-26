@@ -2,6 +2,8 @@ package com.miproject.finalwork.service.Impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.miproject.finalwork.common.convention.errorcode.BaseErrorCode;
+import com.miproject.finalwork.common.convention.exception.ClientException;
 import com.miproject.finalwork.common.convention.exception.ServiceException;
 import com.miproject.finalwork.dao.entity.*;
 import com.miproject.finalwork.dao.mapper.CurrentRuleMapper;
@@ -57,22 +59,10 @@ public class DetailReportServiceImpl implements DetailReportService {
 
     @Override
     public DetailReportRespDTO getDetailStatus(ReportReqDTO reqDTO) {
-        // 使用责任链模式处理请求
-        // 根据请求类型确定需要执行的Handler类型
-        String[] handlerTypes;
-        if (reqDTO.getType() == 1) {
-            handlerTypes = new String[]{"voltage", "admin"};
-        } else if (reqDTO.getType() == 2) {
-            handlerTypes = new String[]{"current", "admin"};
-        } else if (reqDTO.getType() == 3) {
-            handlerTypes = new String[]{"admin"};
-        } else {
-            handlerTypes = new String[]{"voltage", "current", "admin"};
-        }
 
-
-        // 如果责任链没有处理成功，则使用原来的逻辑作为备选
         VehicleDO vehicleDO = vehicleMapper.selectById(reqDTO.getVid());
+        if(vehicleDO == null)
+            throw new ClientException(BaseErrorCode.DATA_ERROR);
 
         String batteryType = vehicleDO.getBatteryType();
         List<RulesDO> rules = new ArrayList<>();
@@ -103,6 +93,8 @@ public class DetailReportServiceImpl implements DetailReportService {
     public WarnDetailDO getWarnDetail(List<RulesDO> rules, Float val) {
         for (RulesDO rule : rules) {
             String esp = rule.getRule();
+            esp = esp.replaceAll("(\\d+(?:\\.\\d+)?)\\s*<=\\s*val\\s*<\\s*(\\d+(?:\\.\\d+)?)", "($1 <= val && val < $2)");
+
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
             engine.put("val", val);
             Boolean res;

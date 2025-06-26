@@ -8,5 +8,5 @@ public class ReportRespDTO {
     private Float rawMaxVal;
     private Float rawMinVal;
     private String unit;
-    private int type;
+    private Integer type;
 }

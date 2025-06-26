@@ -10,6 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 public interface BatteryStatusMapper extends BaseMapper<BatteryStatusDO> {
-    int delOldStatus(String vid, int type);
 
 }

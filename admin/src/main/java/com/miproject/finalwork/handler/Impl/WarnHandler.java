@@ -1,5 +1,7 @@
 package com.miproject.finalwork.handler.Impl;
 
+import com.miproject.finalwork.common.convention.errorcode.BaseErrorCode;
+import com.miproject.finalwork.common.convention.exception.ClientException;
 import com.miproject.finalwork.common.convention.result.Result;
 import com.miproject.finalwork.dto.req.WarnReqDTO;
 import com.miproject.finalwork.dto.resp.WarnRespDTO;
@@ -24,13 +26,12 @@ public class WarnHandler implements Handler<List<WarnReqDTO>, List<WarnRespDTO>>
 
     @Override
     public List<WarnRespDTO> handle(String funcall, List<WarnReqDTO> data, HandlerChainContext ctx){
+        List<WarnRespDTO> warnRespDTOS = warnService.getWarn(data);
+        if(warnRespDTOS == null)
+            throw new ClientException(BaseErrorCode.DATA_ERROR);
+        ctx.put("finalResult", warnRespDTOS);
+        return warnRespDTOS;
 
-        if(!funcall.equals("warn")){
-            ctx.next(funcall, data);
-            return null;
-        }
-
-        return warnService.getWarn(data);
     }
 
 }

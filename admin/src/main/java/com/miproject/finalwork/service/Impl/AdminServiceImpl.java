@@ -42,12 +42,16 @@ public class AdminServiceImpl implements AdminService {
         if(rule.getType() == RuleTypes.VOLTAGE_RULE.getCode()){
             VoltageRuleDO voltageRuleDO = new VoltageRuleDO();
             BeanUtils.copyProperties(rule, voltageRuleDO);
+
             i = voltageRuleMapper.insert(voltageRuleDO);
+
         }
         else if(rule.getType() == RuleTypes.CURRENT_RULE.getCode()){
             CurrentRuleDO currentRuleDO = new CurrentRuleDO();
             BeanUtils.copyProperties(rule, currentRuleDO);
+
             i = currentRuleMapper.insert(currentRuleDO);
+
         }
         if(i < 0){
             throw new ServiceException(BaseErrorCode.SERVICE_ERROR);

@@ -51,7 +51,7 @@ public class ReportServiceImpl implements ReportService {
 
     public boolean hasData(ReportReqDTO reqDTO){
 
-        if(reqDTO.getReqType() == 1){
+        if(reqDTO.getReqType() == 1 || reqDTO.getReqType() == 11){
             return (reqDTO.getRawMaxVal() != null || reqDTO.getRawMinVal() != null);
         }
         return false;
@@ -69,14 +69,9 @@ public class ReportServiceImpl implements ReportService {
         if(!hasData(reqDTO)){
             throw new ClientException(BaseErrorCode.DATA_ERROR);
         }
-        var lock = redissonClient.getLock(LOCK_STATUS_UPLOAD_KEY);
+        var lock = redissonClient.getLock(LOCK_STATUS_UPLOAD_KEY+reqDTO.getVid());
         try{
             lock.lock();
-//          从数据库中软删除
-//            先查再删
-            if(batteryStatusMapper.selectById(reqDTO.getVid()) != null) {
-                batteryStatusMapper.delOldStatus(reqDTO.getVid(), reqDTO.getType());
-            }
             BatteryStatusDO batteryStatusDO = new BatteryStatusDO();
             BeanUtils.copyProperties(reqDTO, batteryStatusDO);
             batteryStatusDO.setTimestamp(new Date());

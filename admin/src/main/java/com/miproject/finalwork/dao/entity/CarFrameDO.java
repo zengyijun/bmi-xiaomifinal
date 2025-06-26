@@ -1,5 +1,6 @@
 package com.miproject.finalwork.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -11,6 +12,7 @@ import lombok.Data;
 @Data
 @TableName("car_info")
 public class CarFrameDO {
-    private int carId;
+    @TableId("car_id")
+    private Integer carId;
     private String batteryType;
 }

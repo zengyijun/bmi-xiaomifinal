@@ -1,6 +1,8 @@
 package com.miproject.finalwork.dao.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -10,11 +12,11 @@ import lombok.Data;
 @Data
 @TableName("vehicle_info")
 public class VehicleDO {
-    @TableField("vid")
+    @TableId(value="vid", type= IdType.INPUT)
     private String vid;
-    private int carId;
+    private Integer carId;
     private String batteryType;
-    private int totalMileage;
-    private int batteryHealth;
-    private int delFlag;
+    private Integer totalMileage;
+    private Integer batteryHealth;
+    private Integer delFlag;
 }

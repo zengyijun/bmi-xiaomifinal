@@ -1,13 +1,17 @@
 package com.miproject.finalwork.service.Impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.miproject.finalwork.common.convention.errorcode.BaseErrorCode;
+import com.miproject.finalwork.common.convention.exception.ClientException;
 import com.miproject.finalwork.common.convention.exception.ServiceException;
 import com.miproject.finalwork.dao.entity.*;
 import com.miproject.finalwork.dao.mapper.*;
+import com.miproject.finalwork.dto.req.SignalDTO;
 import com.miproject.finalwork.dto.req.WarnReqDTO;
 import com.miproject.finalwork.dto.resp.WarnRespDTO;
 import com.miproject.finalwork.service.WarnService;
@@ -30,17 +34,10 @@ import java.util.Map;
 public class WarnServiceImpl implements WarnService {
 
 
-    @Autowired
-    private BatteryStatusMapper batteryStatusMapper;
-    @Autowired
-    private RedissonClient redissonClient;
-    @Autowired
-    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     private ObjectMapper objectMapper;
-    @Autowired
-    private VehicleMapper vehicleMapper;
+
     @Autowired
     private VoltageRuleMapper voltageRuleMapper;
 
@@ -56,33 +53,31 @@ public class WarnServiceImpl implements WarnService {
         List<WarnRespDTO> warnRespDTOs = new ArrayList<>();
         for(WarnReqDTO warnReqDTO:reqDTO){
             CarFrameDO carFrameDO = carFrameMapper.selectById(warnReqDTO.getCarId());
-            Map<String, Float> data;
-            try {
-                data = objectMapper.readValue(warnReqDTO.getSignal(), new TypeReference<Map<String, Float>>() {});
-            } catch (JsonProcessingException e) {
-                throw new ServiceException(e.getMessage());
+            if(carFrameDO == null){
+                throw new ClientException(BaseErrorCode.DATA_ERROR);
             }
+            SignalDTO data = JSON.parseObject(warnReqDTO.getSignal(), SignalDTO.class);
             List<RulesDO> rules = new ArrayList<>();
             float max = 0;
             float min = 0;
-            if(data.containsKey("Ix")){
-                max = data.get("Ix");
-                min = data.get("Ii");
+            if(data.getIx() != null ){
+                max = data.getIx();
+                min = data.getIi();
                 LambdaQueryWrapper<CurrentRuleDO> queryWrapper = Wrappers.lambdaQuery(CurrentRuleDO.class)
                         .eq(CurrentRuleDO::getBatteryType, carFrameDO.getBatteryType());
                 rules.addAll(currentRuleMapper.selectList(queryWrapper));
+                warnRespDTOs.add(getWarnDetail(rules, carFrameDO, max-min));
             }
-
-            warnRespDTOs.add(getWarnDetail(rules, carFrameDO, max-min));
             rules.clear();
-            if(data.containsKey("Mx")){
-                max = data.get("Mx");
-                min = data.get("Mi");
+            if(data.getMx() != null){
+                max = data.getMx();
+                min = data.getMi();
                 LambdaQueryWrapper<VoltageRuleDO> queryWrapper = Wrappers.lambdaQuery(VoltageRuleDO.class)
                         .eq(VoltageRuleDO::getBatteryType, carFrameDO.getBatteryType());
                 rules.addAll(voltageRuleMapper.selectList(queryWrapper));
+                warnRespDTOs.add(getWarnDetail(rules, carFrameDO, max-min));
             }
-            warnRespDTOs.add(getWarnDetail(rules, carFrameDO, max-min));
+
 
         }
         return warnRespDTOs;
@@ -94,6 +89,9 @@ public class WarnServiceImpl implements WarnService {
     public WarnRespDTO getWarnDetail(List<RulesDO> rules, CarFrameDO carFrameDO , Float val) {
         for (RulesDO rule : rules) {
             String esp = rule.getRule();
+
+            esp = esp.replaceAll("(\\d+(?:\\.\\d+)?)\\s*<=\\s*val\\s*<\\s*(\\d+(?:\\.\\d+)?)", "($1 <= val && val < $2)");
+
             ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
             engine.put("val", val);
             Boolean res;

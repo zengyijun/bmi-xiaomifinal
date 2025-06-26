@@ -28,7 +28,9 @@ public class ReportHandler implements Handler<ReportReqDTO, ReportRespDTO> {
                 reportService.uploadStatus(data);
                 return null;
             case "get":
-                return reportService.getStatus(data);
+                ReportRespDTO respDTO = reportService.getStatus(data);
+                ctx.put("finalResult", respDTO);
+                return respDTO;
             default:
                 // detail或其他交给下一个处理器
                 ctx.next(funcall, data);

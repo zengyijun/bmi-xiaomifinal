@@ -3,6 +3,8 @@
   <component name="Encoding" defaultCharsetForPropertiesFiles="UTF-8">
     <file url="file://$PROJECT_DIR$/admin/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/admin/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/finalwork-consumer/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/finalwork-consumer/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/finalwork-producer/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/finalwork-producer/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />

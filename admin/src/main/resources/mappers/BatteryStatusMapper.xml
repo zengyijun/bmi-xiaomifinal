@@ -6,10 +6,19 @@
 
     <!-- 查询电池详细信息 -->
     <!-- 多表联查：先查询电池状态，之后查询规则表获取警告等级等信息 -->
-    <update id="delOldStatus">
-        UPDATE battery_status
-        SET del_flag = 1
-        WHERE vid = #{vid} AND type = #{type}
-    </update>
+    <select id="getWarnInfoByVid" resultType="com.miproject.finalwork.dto.resp.WarnInfoRespDTO">
+        SELECT
+            v.vid,
+            v.cid,
+            v.battery_type,
+            w.warn_id,
+            w.warn_name,
+            w.warn_level,
+            w.time_stamp
+        FROM warn_info w
+                 JOIN vehicle_info v ON w.vid = v.vid
+        WHERE v.vid = #{vid}
+    </select>
+
 
 </mapper>

@@ -27,7 +27,9 @@ public class DetailReportHandler implements Handler<ReportReqDTO, DetailReportRe
             return null;
         }
 
-        return reportService.getDetailStatus(data);
+        DetailReportRespDTO respDTO = reportService.getDetailStatus(data);
+        ctx.put("finalResult", respDTO);
+        return respDTO;
     }
 
 

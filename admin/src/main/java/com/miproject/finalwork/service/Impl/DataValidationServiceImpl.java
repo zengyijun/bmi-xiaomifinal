@@ -7,19 +7,16 @@ import com.miproject.finalwork.service.DataValidationService;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class DataValidationServiceImpl implements DataValidationService {
 
     @Override
-    public boolean checkWarnData(WarnReqDTO data) {
+    public boolean checkWarnData(List<WarnReqDTO> data) {
         Set<String> skip = new HashSet<>();
         skip.add("warnId");
-        return checkData(skip, null, data);
+        return checkListData(skip, null, data);
     }
 
     @Override
@@ -33,7 +30,23 @@ public class DataValidationServiceImpl implements DataValidationService {
 
     @Override
     public boolean checkReportUploadData(ReportReqDTO data) {
+        if(data.getVid() == null || data.getVid().isEmpty())
+            return false;
         return checkData(null, null, data);
+    }
+
+    public boolean checkListData(Set<String> skips, Map<String, Object> mustInculdes, Object datas){
+        if(((List)datas).isEmpty() || datas == null ){
+            return false;
+        }
+        for(Object data:((List)datas)){
+            boolean status = checkData(skips, mustInculdes, data);
+            if(!status)
+                return false;
+        }
+        return true;
+
+
     }
 
     public boolean checkData(Set<String> skips, Map<String, Object> mustInculdes, Object data){
@@ -51,21 +64,27 @@ public class DataValidationServiceImpl implements DataValidationService {
 
 
                 Object value = field.get(data);
-                Object sets = mustInculdes.get(name);
+                Object sets = null;
+                if(mustInculdes != null) {
+                    sets = mustInculdes.get(name);
+
+                }
                 if(value != null){
                     if(value instanceof String){
                         if(((String) value).isEmpty()) {
                             return false;
                         }
-                        boolean flag = false;
-                        for (String set : (String[]) sets) {
-                            if(((String) value).contains(set)) {
-                                flag = true;
-                                break;
+                        if(!(sets == null)) {
+                            boolean flag = false;
+                            for (String set : (String[]) sets) {
+                                if (((String) value).contains(set)) {
+                                    flag = true;
+                                    break;
+                                }
                             }
-                        }
-                        if(!flag){
-                            return false;
+                            if (!flag) {
+                                return false;
+                            }
                         }
 
                     }

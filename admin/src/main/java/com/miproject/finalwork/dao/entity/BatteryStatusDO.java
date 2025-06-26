@@ -13,13 +13,14 @@ import java.util.Date;
 @Data
 @TableName("battery_status")
 public class BatteryStatusDO {
+    private Long id;
     private String vid;
     private Float rawMaxVal;
     private Float rawMinVal;
     private String unit;
-    private int type;
+    private Integer type;
     private Date timestamp;
-    private int delFlag;
+    private Integer delFlag;
 
 
 

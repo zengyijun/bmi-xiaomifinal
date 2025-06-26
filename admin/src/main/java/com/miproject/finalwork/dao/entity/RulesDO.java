@@ -4,8 +4,8 @@ import lombok.Data;
 
 public interface RulesDO {
     String getRule();
-    int getWarnId();
+    Integer getWarnId();
     String getWarnName();
-    int getWarnLevel();
+    Integer getWarnLevel();
     String getBatteryType();
 }

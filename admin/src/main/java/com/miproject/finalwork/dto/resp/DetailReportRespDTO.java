@@ -8,11 +8,11 @@ import lombok.Data;
 @Data
 public class DetailReportRespDTO {
     private String vid;
-    private int carId;
+    private Integer carId;
     private String batteryType;
-    private int warnId;
+    private Integer warnId;
     private String warnName;
     private Float rawMaxVal;
     private Float rawMinVal;
-    private int warnLevel;
+    private Integer warnLevel;
 }

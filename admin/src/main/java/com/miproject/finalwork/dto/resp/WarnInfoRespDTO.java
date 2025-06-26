@@ -2,13 +2,15 @@ package com.miproject.finalwork.dto.resp;
 
 import lombok.Data;
 
-/**
- * @author zengyijun
- */
+import java.util.Date;
+
 @Data
-public class WarnRespDTO {
-    private Integer carId;
+public class WarnInfoRespDTO {
+    private String vid;
+    private Integer cid;
     private String batteryType;
+    private Integer warnId;
     private String warnName;
     private Integer warnLevel;
+    private Date timeStamp;
 }
