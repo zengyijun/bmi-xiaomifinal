@@ -1,7 +1,6 @@
 package com.miproject.finalwork.mq.schedule;
 
-import apache.rocketmq.v2.Message;
-import cn.hutool.crypto.digest.mac.MacEngine;
+
 import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -15,7 +14,7 @@ import com.miproject.finalwork.dao.mapper.VoltageRuleMapper;
 import com.miproject.finalwork.dto.req.WarnMsgMQReqDTO;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
-import org.apache.rocketmq.common.message.MessageQueue;
+import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
@@ -71,7 +70,7 @@ public class DataReport {
                 List<RulesDO> v_rule = new ArrayList<>(voltageRuleMapper.selectList(voltage));
                 WarnMsgMQReqDTO warnMsgMQReqDTO = isWarnable(v_rule, statusDO);
                 if(warnMsgMQReqDTO != null){
-                    String topicName = "warn-level-"+ warnMsgMQReqDTO.getWarnId() +"-topic";
+                    String topicName = "warn-topic";
                     warnMsgMQReqDTO.setTimeStamp(new Date());
                     byte[] body = JSON.toJSONString(warnMsgMQReqDTO).getBytes(StandardCharsets.UTF_8);
                     rocketMQTemplate.convertAndSend(topicName, body);
@@ -82,11 +81,11 @@ public class DataReport {
                 List<RulesDO> c_rule = new ArrayList<>(currentRuleMapper.selectList(current));
                 warnMsgMQReqDTO = isWarnable(c_rule, statusDO);
                 if(warnMsgMQReqDTO != null){
-                    String topicName = "warn-level-"+warnMsgMQReqDTO.getWarnId()+"-topic";
+                    String topicName = "warn-topic";
                     warnMsgMQReqDTO.setTimeStamp(new Date());
                     byte[] body = JSON.toJSONString(warnMsgMQReqDTO).getBytes(StandardCharsets.UTF_8);
-                    rocketMQTemplate.convertAndSend(topicName, body);
-                    log.info("定时任务上传了消息");
+                    SendResult result = rocketMQTemplate.syncSend(topicName, body);
+                    log.info("定时任务上传了消息到MQ，状态："+result.getSendStatus());
                 }
                 statusDO.setDelFlag(1);
                 batteryStatusMapper.updateById(statusDO);

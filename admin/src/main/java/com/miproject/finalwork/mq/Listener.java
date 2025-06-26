@@ -23,7 +23,7 @@ import java.util.Comparator;
 @Slf4j
 // 监听器，按优先级处理
 @RocketMQMessageListener(
-        topic = "warn-level-0-topic||warn-level-1-topic||warn-level-2-topic||warn-level-3-topic||warn-level-4-topic",
+        topic = "warn-topic",
         consumerGroup = "bmi-consumer"
 )
 @Component
@@ -64,15 +64,7 @@ public class Listener implements RocketMQListener<MessageExt> {
         String topic = messageExt.getTopic();
         WarnMsgMQReqDTO recv = JSON.parseObject(messageExt.getBody(), WarnMsgMQReqDTO.class);
         // 解析优先级
-        int priority = 9;
-        try {
-            String[] arr = topic.split("-");
-            if (arr.length > 2) {
-                priority = Integer.parseInt(arr[2]);
-            }
-        } catch (Exception ignored) {}
-        // 优先级覆盖warnLevel字段
-        recv.setWarnLevel(priority);
+        recv.setWarnLevel(recv.getWarnId());
         // 加入优先级队列
         queue.put(recv);
     }
