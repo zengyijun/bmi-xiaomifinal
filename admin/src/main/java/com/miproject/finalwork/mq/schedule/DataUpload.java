@@ -70,7 +70,7 @@ public class DataUpload {
             log.error("[数据上传服务存在错误]："+e.getMessage());
         }
 
-
+        log.info("定时任务定时通过接口创建了电池信息");
 
     }
 
