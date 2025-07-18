@@ -25,4 +25,13 @@ public enum RuleTypes {
         return rule;
     }
 
+    public static String getByCode(int code){
+        for(RuleTypes type : RuleTypes.values()){
+            if(type.getCode() == code) {
+                return type.getRule();
+            }
+        }
+        return null;
+    }
+
 }

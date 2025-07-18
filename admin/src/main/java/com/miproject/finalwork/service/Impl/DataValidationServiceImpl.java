@@ -56,13 +56,10 @@ public class DataValidationServiceImpl implements DataValidationService {
         try{
             for(Field field: data.getClass().getDeclaredFields()){
                 field.setAccessible(true);
-
                 String name = field.getName();
                 if(skips!=null && skips.contains(name)){
                     continue;
                 }
-
-
                 Object value = field.get(data);
                 Object sets = null;
                 if(mustInculdes != null) {
