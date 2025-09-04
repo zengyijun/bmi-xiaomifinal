@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.time.Duration;
 
 import java.util.Date;
@@ -65,6 +66,7 @@ public class ReportServiceImpl implements ReportService {
      * @param reqDTO（vid、rawMaxVal、rawMinVal、unit、type、reqType）
      */
     @Override
+    @Transactional
     public void uploadStatus(ReportReqDTO reqDTO) {
         if(!hasData(reqDTO)){
             throw new ClientException(BaseErrorCode.DATA_ERROR);
@@ -78,11 +80,11 @@ public class ReportServiceImpl implements ReportService {
 //            插入Redis中
             String key = BATTERY_STATUS + reqDTO.getVid() +":"+ reqDTO.getType();
             String value = objectMapper.writeValueAsString(reqDTO);
-            stringRedisTemplate.opsForValue().set(key, value, Duration.ofDays(1));
             int i = batteryStatusMapper.insert(batteryStatusDO);
             if(i <= 0){
                 throw new ServiceException(BaseErrorCode.SERVICE_ERROR);
             }
+            stringRedisTemplate.opsForValue().set(key, value, Duration.ofDays(1));
         } catch (JsonProcessingException e) {
             throw new ServiceException(BaseErrorCode.SERVICE_ERROR);
         } finally{

@@ -8,7 +8,7 @@ import lombok.Data;
  */
 @Data
 @TableName("voltage_rule")
-public class VoltageRuleDO implements RulesDO {
+public class VoltageRuleDO implements BaseRuleDO{
     private Long id;
     private Integer warnId;
     private String warnName;

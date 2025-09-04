@@ -18,5 +18,31 @@
         FROM warn_info w
                  JOIN vehicle_info v ON w.vid = v.vid
         WHERE v.vid = #{vid}
+        ORDER BY w.time_stamp DESC
+    </select>
+    
+    <!-- 分页查询告警信息 -->
+    <select id="getWarnInfoByPage" resultType="com.miproject.finalwork.dto.resp.WarnInfoRespDTO">
+        SELECT
+            v.vid,
+            v.car_id,
+            v.battery_type,
+            w.warn_id,
+            w.warn_name,
+            w.warn_level,
+            w.time_stamp
+        FROM warn_info w
+                 JOIN vehicle_info v ON w.vid = v.vid
+        WHERE v.vid = #{vid}
+        ORDER BY w.time_stamp DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 查询告警信息总数 -->
+    <select id="getWarnInfoCount" resultType="java.lang.Long">
+        SELECT COUNT(*)
+        FROM warn_info w
+                 JOIN vehicle_info v ON w.vid = v.vid
+        WHERE v.vid = #{vid}
     </select>
 </mapper>

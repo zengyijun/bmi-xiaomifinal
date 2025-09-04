@@ -2,6 +2,8 @@ package com.miproject.finalwork.handler.Impl;
 
 import com.miproject.finalwork.common.convention.errorcode.BaseErrorCode;
 import com.miproject.finalwork.common.convention.exception.ClientException;
+import com.miproject.finalwork.dto.req.WarnInfoQueryReqDTO;
+import com.miproject.finalwork.dto.resp.WarnInfoPageRespDTO;
 import com.miproject.finalwork.dto.resp.WarnInfoRespDTO;
 import com.miproject.finalwork.handler.Handler;
 import com.miproject.finalwork.handler.HandlerChainContext;
@@ -9,6 +11,7 @@ import com.miproject.finalwork.handler.annotation.AlarmType;
 import com.miproject.finalwork.service.WarnInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import java.util.List;
 
 @AlarmType("warn_info")
@@ -24,5 +27,20 @@ public class WarnInfoHandler implements Handler<String, List<WarnInfoRespDTO>> {
             throw new ClientException(BaseErrorCode.DATA_ERROR);
         ctx.put("finalResult", warnInfoRespDTOS);
         return warnInfoRespDTOS;
+    }
+    
+    /**
+     * 处理分页查询请求
+     * @param funcall 方法调用标识
+     * @param data 查询参数
+     * @param ctx 处理链上下文
+     * @return 分页结果
+     */
+    public WarnInfoPageRespDTO handlePage(String funcall, WarnInfoQueryReqDTO data, HandlerChainContext ctx) {
+        WarnInfoPageRespDTO pageRespDTO = warnInfoService.getWarnInfoByPage(data);
+        if(pageRespDTO == null)
+            throw new ClientException(BaseErrorCode.DATA_ERROR);
+        ctx.put("finalResult", pageRespDTO);
+        return pageRespDTO;
     }
 }

@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.miproject.finalwork.common.constant.RedisCacheConstant;
+import com.miproject.finalwork.common.context.RuleContext;
 import com.miproject.finalwork.common.convention.exception.RemoteException;
 import com.miproject.finalwork.dao.entity.*;
 import com.miproject.finalwork.dao.mapper.BatteryStatusMapper;
@@ -12,6 +13,7 @@ import com.miproject.finalwork.dao.mapper.CurrentRuleMapper;
 import com.miproject.finalwork.dao.mapper.VehicleMapper;
 import com.miproject.finalwork.dao.mapper.VoltageRuleMapper;
 import com.miproject.finalwork.dto.req.WarnMsgMQReqDTO;
+import com.miproject.finalwork.service.RuleEvaluationService;
 import lombok.extern.slf4j.Slf4j;
 import lombok.var;
 import org.apache.rocketmq.client.producer.SendResult;
@@ -22,13 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+/**
+ * 获取数据库中车辆上传的数据，检查其是否存在异常
+ * 将异常数据上报给消费者
+ * 验证上报数据的正确性
+ * @author zengyijun
+ */
 
 @Slf4j
 @Component
@@ -51,9 +57,11 @@ public class DataReport {
 
     @Autowired
     private CurrentRuleMapper currentRuleMapper;
+    
+    @Autowired
+    private RuleEvaluationService ruleEvaluationService;
 
-
-    @Scheduled(cron = "0 */1 * * * ?")
+    @Scheduled(cron = "0 */10 * * * ?")
     public void reportData(){
         var lock = redissonClient.getLock(RedisCacheConstant.LOCK_STATUS_UPLOAD_KEY);
         try{
@@ -63,11 +71,10 @@ public class DataReport {
             List<BatteryStatusDO> statusDOList = batteryStatusMapper.selectList(queryWrapper);
 
             for(BatteryStatusDO statusDO : statusDOList){
-                Float val = statusDO.getRawMaxVal() - statusDO.getRawMinVal();
                 VehicleDO vehicle = vehicleMapper.selectById(statusDO.getVid());
                 LambdaQueryWrapper<VoltageRuleDO> voltage = Wrappers.lambdaQuery(VoltageRuleDO.class)
                         .eq(VoltageRuleDO::getBatteryType, vehicle.getBatteryType());
-                List<RulesDO> v_rule = new ArrayList<>(voltageRuleMapper.selectList(voltage));
+                List<BaseRuleDO> v_rule = new ArrayList<>(voltageRuleMapper.selectList(voltage));
                 WarnMsgMQReqDTO warnMsgMQReqDTO = isWarnable(v_rule, statusDO);
                 if(warnMsgMQReqDTO != null){
                     String topicName = "warn-topic";
@@ -78,14 +85,14 @@ public class DataReport {
                 warnMsgMQReqDTO = null;
                 LambdaQueryWrapper<CurrentRuleDO> current = Wrappers.lambdaQuery(CurrentRuleDO.class)
                         .eq(CurrentRuleDO::getBatteryType, vehicle.getBatteryType());
-                List<RulesDO> c_rule = new ArrayList<>(currentRuleMapper.selectList(current));
+                List<BaseRuleDO> c_rule = new ArrayList<>(currentRuleMapper.selectList(current));
                 warnMsgMQReqDTO = isWarnable(c_rule, statusDO);
                 if(warnMsgMQReqDTO != null){
                     String topicName = "warn-topic";
                     warnMsgMQReqDTO.setTimeStamp(new Date());
                     byte[] body = JSON.toJSONString(warnMsgMQReqDTO).getBytes(StandardCharsets.UTF_8);
                     SendResult result = rocketMQTemplate.syncSend(topicName, body);
-                    log.info("定时任务上传了消息到MQ，状态："+result.getSendStatus());
+                    log.info("数据上传了消息到MQ，状态："+result.getSendStatus());
                 }
                 statusDO.setDelFlag(1);
                 batteryStatusMapper.updateById(statusDO);
@@ -95,22 +102,28 @@ public class DataReport {
         }
     }
 
-    public WarnMsgMQReqDTO isWarnable(List<RulesDO>rules, BatteryStatusDO status){
-        for(RulesDO rule: rules){
-            String esp = rule.getRule();
-            ScriptEngine engine = new ScriptEngineManager().getEngineByName("JavaScript");
-            engine.put("val", (status.getRawMaxVal()-status.getRawMinVal()));
-            Boolean res;
+    public WarnMsgMQReqDTO isWarnable(List<BaseRuleDO>rules, BatteryStatusDO status){
+        for(BaseRuleDO rule: rules){
             try {
-                res = (Boolean) engine.eval(esp);
-            } catch (ScriptException e) {
-                throw new RemoteException(e.getMessage());
-            }
-            if(res == true && rule.getWarnLevel() >= 0){
-                WarnMsgMQReqDTO reqDTO = new WarnMsgMQReqDTO();
-                BeanUtils.copyProperties(rule, reqDTO);
-                reqDTO.setVid(status.getVid());
-                return reqDTO;
+                // 创建规则上下文
+                RuleContext context = new RuleContext();
+                context.setMx(status.getRawMaxVal());
+                context.setMn(status.getRawMinVal());
+
+                context.setIx(status.getRawMaxVal());
+                context.setIn(status.getRawMinVal());
+                
+                // 使用规则解析服务评估数据是否符合规则
+                boolean res = ruleEvaluationService.evaluateRule(rule.getRule(), context);
+                
+                if(res && rule.getWarnLevel() >= 0){
+                    WarnMsgMQReqDTO reqDTO = new WarnMsgMQReqDTO();
+                    BeanUtils.copyProperties(rule, reqDTO);
+                    reqDTO.setVid(status.getVid());
+                    return reqDTO;
+                }
+            } catch (Exception e) {
+                throw new RemoteException("[规则解析出错]" + e.getMessage());
             }
         }
         return null;

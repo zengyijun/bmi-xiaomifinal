@@ -18,7 +18,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * @author zengyijun
+ */
 @Slf4j
 @Service
 public class AdminServiceImpl implements AdminService {
@@ -30,6 +34,8 @@ public class AdminServiceImpl implements AdminService {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+
+
     @Autowired
     private VoltageRuleMapper voltageRuleMapper;
 
@@ -38,6 +44,7 @@ public class AdminServiceImpl implements AdminService {
 
 //    添加规则
     @Override
+    @Transactional
     public void addRule(RuleAddReqDTO rule) {
 
 //        解析规则
@@ -59,6 +66,9 @@ public class AdminServiceImpl implements AdminService {
                 throw new ServiceException(e.getMessage());
             }
             stringRedisTemplate.opsForSet().add(BATTERY_RULES+ruleName, ruleExp);
+            
+            // 清除电压规则缓存，确保下次获取规则时使用最新的规则
+            clearVoltageRuleCache(rule.getBatteryType());
         }
         else if(rule.getType() == RuleTypes.CURRENT_RULE.getCode()){
             ruleName = RuleTypes.getByCode(rule.getType());
@@ -72,11 +82,32 @@ public class AdminServiceImpl implements AdminService {
                 throw new ServiceException(e.getMessage());
             }
             stringRedisTemplate.opsForSet().add(BATTERY_RULES+ruleName, ruleExp);
+            
+            // 清除电流规则缓存，确保下次获取规则时使用最新的规则
+            clearCurrentRuleCache(rule.getBatteryType());
 
         }
         if(i < 0){
             throw new ServiceException(BaseErrorCode.SERVICE_ERROR);
         }
+    }
+    
+    /**
+     * 清除指定电池类型的电压规则缓存
+     * @param batteryType 电池类型
+     */
+    private void clearVoltageRuleCache(String batteryType) {
+        String cacheKey = "rules:voltage:" + batteryType;
+        stringRedisTemplate.delete(cacheKey);
+    }
+    
+    /**
+     * 清除指定电池类型的电流规则缓存
+     * @param batteryType 电池类型
+     */
+    private void clearCurrentRuleCache(String batteryType) {
+        String cacheKey = "rules:current:" + batteryType;
+        stringRedisTemplate.delete(cacheKey);
     }
 
 }

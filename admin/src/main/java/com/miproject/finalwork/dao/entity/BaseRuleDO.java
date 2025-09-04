@@ -2,7 +2,8 @@ package com.miproject.finalwork.dao.entity;
 
 import lombok.Data;
 
-public interface RulesDO {
+
+public interface BaseRuleDO {
     String getRule();
     Integer getWarnId();
     String getWarnName();

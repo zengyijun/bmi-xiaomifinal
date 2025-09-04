@@ -9,7 +9,7 @@ import lombok.Data;
  */
 @Data
 @TableName("current_rule")
-public class CurrentRuleDO implements RulesDO {
+public class CurrentRuleDO implements BaseRuleDO {
     private Long id;
     private Integer warnId;
     private String warnName;
